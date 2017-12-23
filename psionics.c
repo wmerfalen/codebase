@@ -29,8 +29,11 @@
 #include "quest.h"
 #include "bionics.h"
 #include "mud_event.h"
-void call_pets(struct char_data *ch);
 
+#define MAX_PSI_BULLETS 8
+
+void call_pets(struct char_data *ch);
+static int get_bullets(struct char_data *ch);
 // Special psionics appear below
 
 // psionic_create_water removed
@@ -192,6 +195,20 @@ int isname_obj(char *search, char *list)
         return (0);
 }
 
+// uses the same logic that was copied and pasted in the various psionics functions to calculate bullets
+// returns the number of bullets available to the current character (*ch) with a max of 8 possible bullets
+//
+static int get_bullets(struct char_data* ch){
+	int bullets = 0;
+
+	bullets = (GET_LEVEL(ch)/10)+1;
+	bullets += GET_REMORTS(ch);
+
+	if (bullets >= MAX_PSI_BULLETS)
+		bullets = MAX_PSI_BULLETS;
+
+	return bullets;
+}
 // psionic slightly modified from Cyber 1.5.  Now, if your level wont permit you to see an object being
 // carried by another player, you dont get any information at all.  This only affects adding the zone
 // information for objects being carried, which did not align with what the other checks were doing.
@@ -377,23 +394,7 @@ if (GET_SKILL_LEVEL(ch, SKILL_QUERY) == 0) {
 APSI(psionic_psi_bullet)
 {
 	int dam;
-	int bullets;
-	
-	if (GET_LEVEL(ch) <= 10)
-		bullets = 1;
-	else if (GET_LEVEL(ch) <= 20)
-		bullets = 2;
-	else if (GET_LEVEL(ch) <= 30)
-		bullets = 3;
-	else if (GET_LEVEL(ch) <= 40)
-		bullets = 4;
-	else
-		bullets = 5;
-
-	bullets += GET_REMORTS(ch);
-
-	if (bullets >= 8)
-		bullets = 8;
+	int bullets = get_bullets(ch);
 
 	GET_PSIBULLETS(ch) = bullets;
 	
@@ -426,7 +427,7 @@ APSI(psionic_psi_bullet)
 APSI(psionic_tigerclaw)
 {
 	int dam;
-	int bullets;
+	int bullets = get_bullets(ch);
         
         GET_CLAWS(ch) = 0;
 
@@ -437,22 +438,6 @@ APSI(psionic_tigerclaw)
         }
 		send_to_char(ch, "You summon your freakish abilities to morph your hand into a deadly \t[f420]Tiger Claw@n!!\r\n\r\n");
 		send_to_char(victim, "%s morphs a hand into a deadly \t[f420]Tiger Claw@n!!\r\n\r\n", GET_NAME(ch));
-
-	if (GET_LEVEL(ch) <= 10)
-		bullets = 1;
-	else if (GET_LEVEL(ch) <= 20)
-		bullets = 2;
-	else if (GET_LEVEL(ch) <= 30)
-		bullets = 3;
-	else if (GET_LEVEL(ch) <= 40)
-		bullets = 4;
-	else
-		bullets = 5;
-
-	bullets += GET_REMORTS(ch);
-
-	if (bullets >= 8)
-		bullets = 8;
 
 	GET_CLAWS(ch) = bullets;
 	
